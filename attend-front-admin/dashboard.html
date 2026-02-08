@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>디지털 출결관리 - 관리자</title>
+    <link href="css/output.css" rel="stylesheet" />
+
+    <!-- PWA 설정 -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="출결관리" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta
+      name="description"
+      content="디지털 출결관리 - 관리자 시스템 - 관리자"
+    />
+    <!-- PWA 설정 끝 -->
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/axios-config.js"></script>
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Pretendard Variable", Pretendard, -apple-system,
+          BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI",
+          "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
+          "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <header class="bg-white shadow-soft-down">
+      <nav
+        class="container mx-auto px-2 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+      >
+        <a
+          href="/hub.html"
+          class="text-xl sm:text-2xl font-bold text-primary flex items-center hover-scale"
+        >
+          <i class="ri-calendar-check-fill mr-3 text-primary-500"></i>
+          디지털 출결관리 - 관리자
+        </a>
+        <button
+          id="install-pwa"
+          class="hidden bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg text-sm flex items-center"
+        >
+          <i class="ri-download-line mr-1"></i> 앱 설치
+        </button>
+      </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <div class="bg-white rounded-lg shadow-soft overflow-hidden">
+        <div class="p-4 sm:p-8">
+          <h2
+            class="text-2xl lg:text-3xl font-bold mb-8 text-secondary-900 flex items-center"
+          >
+            <i class="ri-user-settings-line mr-3 text-primary-500 text-3xl"></i>
+            사용자 관리
+          </h2>
+
+          <div class="mb-8">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            >
+              <div>
+                <label
+                  for="grade"
+                  class="block text-sm sm:text-base font-medium text-secondary-700 mb-2"
+                  >학년</label
+                >
+                <select id="grade" class="input bg-white w-full">
+                  <option value="">전체</option>
+                  <option value="1">1학년</option>
+                  <option value="2">2학년</option>
+                  <option value="3">3학년</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  for="class"
+                  class="block text-base font-medium text-secondary-700 mb-2"
+                  >반</label
+                >
+                <select id="class" class="input bg-white w-full">
+                  <option value="">전체</option>
+                  <option value="1">1반</option>
+                  <option value="2">2반</option>
+                  <option value="3">3반</option>
+                  <option value="4">4반</option>
+                  <option value="5">5반</option>
+                  <option value="6">6반</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  for="search"
+                  class="block text-base font-medium text-secondary-700 mb-2"
+                  >검색</label
+                >
+                <input
+                  type="text"
+                  id="search"
+                  placeholder="이름 또는 학번으로 검색"
+                  class="input bg-white w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+          >
+            <div class="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+              <button
+                id="selectAllBtn"
+                class="btn btn-secondary text-sm sm:text-base px-3 sm:px-4 py-2 w-full sm:w-auto"
+              >
+                <i class="ri-checkbox-multiple-line mr-2"></i>
+                전체 선택
+              </button>
+              <button
+                id="bulkApprove"
+                class="btn bg-green-500 text-white hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-base px-4 py-2"
+              >
+                <i class="ri-check-double-line mr-2"></i>
+                선택 승인
+              </button>
+              <button
+                id="bulkDelete"
+                class="btn bg-red-500 text-white hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 text-base px-4 py-2"
+              >
+                <i class="ri-delete-bin-line mr-2"></i>
+                선택 삭제
+              </button>
+              <button
+                id="bulkAdmin"
+                class="btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 text-base px-4 py-2"
+              >
+                <i class="ri-admin-line mr-2"></i>
+                선택 관리자 지정
+              </button>
+              <button
+                id="bulkReader"
+                class="btn bg-accent-500 text-white hover:bg-accent-600 focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 text-base px-4 py-2"
+              >
+                <i class="ri-user-star-line mr-2"></i>
+                선택 리더 지정
+              </button>
+              <button
+                id="bulkCreateBtn"
+                class="btn bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-base px-4 py-2"
+              >
+                <i class="ri-user-add-line mr-2"></i>
+                학생 일괄 생성
+              </button>
+            </div>
+            <div class="flex items-center gap-3">
+              <label for="perPage" class="text-base text-secondary-600"
+                >페이지당 표시:</label
+              >
+              <select
+                id="perPage"
+                class="input bg-white py-2 px-3 w-24 text-base"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mt-6 overflow-hidden">
+            <div class="overflow-x-auto">
+              <div class="inline-block min-w-full align-middle">
+                <div
+                  class="overflow-hidden border border-secondary-200 sm:rounded-lg"
+                >
+                  <table class="min-w-full divide-y divide-secondary-200">
+                    <thead class="bg-secondary-50">
+                      <tr>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-16"
+                        >
+                          <input
+                            type="checkbox"
+                            id="headerCheckbox"
+                            class="form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-primary-500 rounded border-secondary-300 focus:ring-primary-500"
+                          />
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          학번
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          이름
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-24"
+                        >
+                          학년
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-24"
+                        >
+                          반
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-24"
+                        >
+                          번호
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          승인 상태
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          관리자
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          선생님
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          리더
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-32"
+                        >
+                          디바이스
+                        </th>
+                        <th
+                          class="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-secondary-600 uppercase tracking-wider w-24"
+                        >
+                          작업
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="userTableBody"
+                      class="bg-white divide-y divide-secondary-200"
+                    >
+                      <!-- 사용자 데이터가 여기에 동적으로 추가됩니다 -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 flex justify-center">
+            <div
+              class="flex flex-wrap justify-center gap-2 sm:gap-3"
+              id="pagination"
+            >
+              <!-- 페이지네이션 버튼들이 여기에 동적으로 추가됩니다 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 학생 일괄 생성 모달 추가 -->
+    <div
+      id="bulkCreateModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold mb-4">학생 일괄 생성</h3>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >학년</label
+              >
+              <select id="bulkGrade" class="input bg-white w-full">
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >반</label
+              >
+              <select id="bulkClass" class="input bg-white w-full">
+                <option value="1">1반</option>
+                <option value="2">2반</option>
+                <option value="3">3반</option>
+                <option value="4">4반</option>
+                <option value="5">5반</option>
+                <option value="6">6반</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >시작 번호</label
+              >
+              <input
+                type="number"
+                id="bulkStartNumber"
+                min="1"
+                max="100"
+                value="1"
+                class="input bg-white w-full"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >끝 번호</label
+              >
+              <input
+                type="number"
+                id="bulkEndNumber"
+                min="1"
+                max="100"
+                value="30"
+                class="input bg-white w-full"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >개별 이름 목록</label
+            >
+            <div class="text-xs text-gray-500 mb-2">
+              각 줄에 "번호:이름" 형식으로 입력하세요. 예) 1:홍길동
+            </div>
+            <textarea
+              id="bulkCustomNames"
+              rows="6"
+              class="input bg-white w-full"
+              placeholder="1:홍길동&#10;2:김철수&#10;3:이영희"
+            ></textarea>
+            <div class="mt-2">
+              <button
+                id="generateNameList"
+                class="text-sm text-primary-600 hover:text-primary-800"
+              >
+                번호 범위로 빈 목록 생성
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >공통 비밀번호</label
+            >
+            <input
+              type="password"
+              id="bulkPassword"
+              placeholder="8자 이상 입력"
+              class="input bg-white w-full"
+            />
+          </div>
+          <div class="text-sm text-gray-500">
+            <p>* 학번은 '학년+반+번호(2자리)'로 자동 생성됩니다.</p>
+            <p>* 이름은 개별 입력한 이름으로 설정됩니다.</p>
+            <p>* 이미 존재하는 학번은 건너뜁니다.</p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button id="bulkCreateCancel" class="btn btn-secondary">취소</button>
+          <button id="bulkCreateConfirm" class="btn btn-primary">생성</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 선생님 설정 모달 추가 -->
+    <div
+      id="teacherModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-lg font-semibold mb-4">선생님 설정</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >담당 학년</label
+            >
+            <select id="teacherGrade" class="input bg-white w-full">
+              <option value="">선택하세요</option>
+              <option value="1">1학년</option>
+              <option value="2">2학년</option>
+              <option value="3">3학년</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >담당 반</label
+            >
+            <select id="teacherClass" class="input bg-white w-full">
+              <option value="">선택하세요</option>
+              <option value="1">1반</option>
+              <option value="2">2반</option>
+              <option value="3">3반</option>
+              <option value="4">4반</option>
+              <option value="5">5반</option>
+              <option value="6">6반</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button id="teacherModalCancel" class="btn btn-secondary">
+            취소
+          </button>
+          <button id="teacherModalConfirm" class="btn btn-primary">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 디바이스 정보 모달 추가 -->
+    <div
+      id="deviceModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-lg font-semibold mb-4">디바이스 정보</h3>
+        <div id="deviceInfo" class="space-y-4">
+          <!-- 디바이스 정보가 여기에 동적으로 추가됩니다 -->
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button
+            id="unregisterDevice"
+            class="btn bg-red-500 text-white hover:bg-red-600"
+          >
+            디바이스 해제
+          </button>
+          <button onclick="closeDeviceModal()" class="btn btn-secondary">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-white shadow-soft-up mt-auto">
+      <div class="container-custom py-6">
+        <div class="flex flex-col items-center text-center">
+          <p class="mb-3 text-secondary-600">이메일: sungblab@gmail.com</p>
+          <a
+            href="https://sungblab.vercel.app/blog"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary-500 hover:text-primary-600 transition-colors mb-4"
+            >개발자 블로그로 가기</a
+          >
+          <p class="text-secondary-500">
+            &copy; 2024 디지털 출결관리 - 관리자 . All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      function checkAuthAndRedirect() {
+        const token = localStorage.getItem("token");
+        console.log("Checking auth, token:", token); // 디버깅 로그
+        if (!token) {
+          console.log("No token found, redirecting to login page"); // 디버깅 로그
+          window.location.href =
+            "index.html?error=" + encodeURIComponent("로그인이 필요합니다.");
+          return false;
+        }
+        return true;
+      }
+
+      const gradeSelect = document.getElementById("grade");
+      const classSelect = document.getElementById("class");
+      const userTableBody = document.getElementById("userTableBody");
+
+      gradeSelect.addEventListener("change", fetchUsers);
+      classSelect.addEventListener("change", fetchUsers);
+
+      async function fetchUsers() {
+        try {
+          const grade = gradeSelect.value;
+          const classNumber = classSelect.value;
+          const response = await axios.get("/api/admin/users", {
+            params: { grade, class: classNumber },
+          });
+          displayUsers(response.data);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          handleError(error);
+        }
+      }
+
+      function displayUsers(users) {
+        userTableBody.innerHTML = "";
+        let allUsers = [...users]; // 전체 사용자 데이터 복사
+
+        // 검색어로 필터링
+        if (searchInput.value) {
+          const searchTerm = searchInput.value.toLowerCase();
+          allUsers = allUsers.filter(
+            (user) =>
+              user.name.toLowerCase().includes(searchTerm) ||
+              user.studentId.toLowerCase().includes(searchTerm)
+          );
+        }
+
+        // 학년/반 필터링
+        if (gradeSelect.value) {
+          allUsers = allUsers.filter(
+            (user) => user.grade.toString() === gradeSelect.value
+          );
+        }
+        if (classSelect.value) {
+          allUsers = allUsers.filter(
+            (user) => user.class.toString() === classSelect.value
+          );
+        }
+
+        // 페이지네이션 사용용
+        const pageSize = parseInt(perPageSelect.value) || 10;
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedUsers = allUsers.slice(startIndex, endIndex);
+
+        // 페이지네이션 버튼 업데이트
+        updatePaginationButtons(allUsers.length, pageSize);
+
+        // 사용자 목록 표시
+        paginatedUsers
+          .sort((a, b) => {
+            // 학년 비교
+            if (a.grade !== b.grade) {
+              return a.grade - b.grade;
+            }
+            // 학년이 같으면 반 비교
+            if (a.class !== b.class) {
+              return a.class - b.class;
+            }
+            // 반이 같으면  번호를 숫자로 변환하여 순서대로 정렬
+            const numA = parseInt(a.number);
+            const numB = parseInt(b.number);
+            return numA - numB;
+          })
+          .forEach((user) => {
+            const row = document.createElement("tr");
+            row.className = "hover:bg-secondary-50 transition-colors";
+            row.innerHTML = `
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <input type="checkbox" class="user-checkbox form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-primary-500 rounded border-secondary-300 focus:ring-primary-500" value="${
+                  user._id
+                }">
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap font-medium text-secondary-900">${
+                user.studentId
+              }</td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap font-medium text-secondary-900">${
+                user.name
+              }</td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 text-secondary-700">${
+                user.grade
+              }</td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 text-secondary-700">${
+                user.class
+              }</td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 text-secondary-700">${
+                user.number
+              }</td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  user.isApproved
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }">
+                  ${user.isApproved ? "승인됨" : "미승인"}
+                </span>
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <button onclick="updateAdmin('${user._id}', ${!user.isAdmin})" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    user.isAdmin
+                      ? "bg-primary-100 text-primary-800 hover:bg-primary-200"
+                      : "bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
+                  }">
+                  ${user.isAdmin ? "관리자 해제" : "관리자 지정"}
+                </button>
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <button onclick="updateTeacher('${
+                  user._id
+                }', ${!user.isTeacher})" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    user.isTeacher
+                      ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      : "bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
+                  }">
+                  ${
+                    user.isTeacher
+                      ? `선생님 해제 (${user.teacherGrade}학년 ${user.teacherClass}반)`
+                      : "선생님 지정"
+                  }
+                </button>
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <button onclick="updateReader('${
+                  user._id
+                }', ${!user.isReader})" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    user.isReader
+                      ? "bg-accent-100 text-accent-800 hover:bg-accent-200"
+                      : "bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
+                  }">
+                  ${user.isReader ? "리더 해제" : "리더 지정"}
+                </button>
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <button onclick="showDeviceInfo('${user._id}')" 
+                  class="px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    user.deviceId
+                      ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                      : "bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
+                  }">
+                  ${user.deviceId ? "등록됨" : "미등록"}
+                </button>
+              </td>
+              <td class="px-2 sm:px-3 py-2 sm:py-3 whitespace-nowrap">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                  <button onclick="deleteUser('${
+                    user._id
+                  }')" class="text-red-600 hover:text-red-900 transition-colors">
+                    <i class="ri-delete-bin-line text-base sm:text-lg"></i>
+                  </button>
+                  <button onclick="resetPassword('${
+                    user._id
+                  }')" class="text-primary-600 hover:text-primary-900 transition-colors">
+                    <i class="ri-lock-unlock-line text-base sm:text-lg"></i>
+                  </button>
+                </div>
+              </td>
+            `;
+            userTableBody.appendChild(row);
+          });
+      }
+
+      async function resetPassword(userId) {
+        if (confirm("정말로 이 사용자의 비밀번호를 초기화하시겠습니까?")) {
+          try {
+            await axios.post("/api/admin/reset-password", { userId });
+            alert("비밀번호가 1234로 초기화되었습니다.");
+          } catch (error) {
+            console.error("Error resetting password:", error);
+            alert("비밀번호 초기화에 실패했습니다.");
+          }
+        }
+      }
+
+      async function updateApproval(userId, isApproved) {
+        try {
+          await axios.post("/api/admin/approve-user", { userId, isApproved });
+          alert("사용자 승인 상태가 업데이트되었습니다.");
+          fetchUsers();
+        } catch (error) {
+          console.error("Error updating approval status:", error);
+          alert("승인 상태 업데이트에 실패했습니다.");
+        }
+      }
+
+      async function updateAdmin(userId, isAdmin) {
+        try {
+          await axios.post("/api/admin/set-admin", { userId, isAdmin });
+          alert(
+            isAdmin
+              ? "관리자로 지정되었습니다."
+              : "관리자 권한이 해제되었습니다."
+          );
+          fetchUsers();
+        } catch (error) {
+          console.error("Error updating admin status:", error);
+          alert("관리자 권한 업데이트에 실패했습니다.");
+        }
+      }
+
+      async function updateTeacher(userId, isTeacher) {
+        try {
+          if (isTeacher) {
+            // 모달 요소들 가져오기
+            const modal = document.getElementById("teacherModal");
+            const gradeSelect = document.getElementById("teacherGrade");
+            const classSelect = document.getElementById("teacherClass");
+            const cancelBtn = document.getElementById("teacherModalCancel");
+            const confirmBtn = document.getElementById("teacherModalConfirm");
+
+            // 현재 사용자 정보 가져오기
+            const response = await axios.get(`/api/admin/users/${userId}`);
+            const user = response.data;
+
+            // 기존 설정값이 있다면 선택
+            if (user.teacherGrade) {
+              gradeSelect.value = user.teacherGrade;
+            }
+            if (user.teacherClass) {
+              classSelect.value = user.teacherClass;
+            }
+
+            // 모달 표시
+            modal.classList.remove("hidden");
+
+            // ESC 키로 모달 닫기
+            const handleEsc = (e) => {
+              if (e.key === "Escape") {
+                modal.classList.add("hidden");
+                document.removeEventListener("keydown", handleEsc);
+              }
+            };
+            document.addEventListener("keydown", handleEsc);
+
+            // 모달 외부 클릭시 닫기
+            modal.onclick = (e) => {
+              if (e.target === modal) {
+                modal.classList.add("hidden");
+              }
+            };
+
+            // 취소 버튼 클릭 시
+            cancelBtn.onclick = () => {
+              modal.classList.add("hidden");
+            };
+
+            // 확인 버튼 클릭 시
+            confirmBtn.onclick = async () => {
+              const teacherGrade = parseInt(gradeSelect.value);
+              const teacherClass = parseInt(classSelect.value);
+
+              if (!teacherGrade || !teacherClass) {
+                alert("담당 학년과 반을 모두 선택해주세요.");
+                return;
+              }
+
+              try {
+                await axios.post("/api/admin/set-teacher", {
+                  userId,
+                  isTeacher: true,
+                  teacherGrade,
+                  teacherClass,
+                });
+                alert("선생님으로 지정되었습니다.");
+                modal.classList.add("hidden");
+                fetchUsers();
+              } catch (error) {
+                console.error("Error updating teacher status:", error);
+                alert("선생님 권한 업데이트에 실패했습니다.");
+              }
+            };
+          } else {
+            // 선생님 권한 해제
+            if (
+              confirm(
+                "선생님 권한을 해제하시겠습니까? 담당 반 정보도 함께 삭제됩니다."
+              )
+            ) {
+              await axios.post("/api/admin/set-teacher", {
+                userId,
+                isTeacher: false,
+              });
+              alert("선생님 권한이 해제되었습니다.");
+              fetchUsers();
+            }
+          }
+        } catch (error) {
+          console.error("Error updating teacher status:", error);
+          alert("선생님 권한 업데이트에 실패했습니다.");
+        }
+      }
+
+      async function updateReader(userId, isReader) {
+        try {
+          await axios.post("/api/admin/set-reader", { userId, isReader });
+          alert(
+            isReader ? "리더로 지정되었습니다." : "리더 권한이 해제되었습니다."
+          );
+          fetchUsers();
+        } catch (error) {
+          console.error("Error updating reader status:", error);
+          alert("리더 권한 업데이트에 실패했습니다.");
+        }
+      }
+
+      async function deleteUser(userId) {
+        if (confirm("정말로 이 사용자를 삭제하시겠습니까?")) {
+          try {
+            await axios.delete(`/api/admin/users/${userId}`);
+            alert("사용자가 삭제되었습니다.");
+            fetchUsers();
+          } catch (error) {
+            console.error("Error deleting user:", error);
+            alert("사용자 삭제에 실패했습니다.");
+          }
+        }
+      }
+
+      async function handleError(error) {
+        if (error.response) {
+          if (error.response.status === 401) {
+            alert("세션이 만료되었습니다. 다시 로그인해주세요.");
+            localStorage.clear();
+            window.location.href = "index.html";
+          } else {
+            alert(`오류가 발생했습니다: ${error.response.data.message}`);
+          }
+        } else if (error.request) {
+          alert("서버와 통신할 수 없습니다. 인터넷 연결을 확인해주세요.");
+        } else {
+          alert("알 수 없는 오류가 발생했습니다.");
+        }
+      }
+
+      // 초기 사용자자자 목록 로드
+      fetchUsers();
+
+      let currentPage = 1;
+      let itemsPerPage = 10;
+      let filteredUsers = [];
+
+      const searchInput = document.getElementById("search");
+      const perPageSelect = document.getElementById("perPage");
+      const selectAllBtn = document.getElementById("selectAllBtn");
+      const bulkApproveBtn = document.getElementById("bulkApprove");
+      const bulkDeleteBtn = document.getElementById("bulkDelete");
+      let isAllSelected = false;
+
+      // 검색 기능
+      searchInput.addEventListener("input", () => {
+        currentPage = 1; // 검색 시 첫 페이지로 이동
+        fetchUsers();
+      });
+
+      // 페이지당 항목 수 변경
+      perPageSelect.addEventListener("change", () => {
+        currentPage = 1; // 페이지 변경 시 첫 페이지로 이동
+        fetchUsers();
+      });
+
+      // 전체 선택 기능 수정
+      selectAllBtn.addEventListener("click", () => {
+        isAllSelected = !isAllSelected;
+        const userCheckboxes = document.querySelectorAll(".user-checkbox");
+        const headerCheckbox = document.getElementById("headerCheckbox");
+
+        userCheckboxes.forEach((checkbox) => {
+          checkbox.checked = isAllSelected;
+        });
+        headerCheckbox.checked = isAllSelected;
+
+        // 버튼 텍스트 변경
+        selectAllBtn.textContent = isAllSelected ? "전체 해제" : "전체 선택";
+      });
+
+      // 헤더 체크박스 이벤트 리스너 수정
+      document
+        .getElementById("headerCheckbox")
+        .addEventListener("change", function () {
+          const userCheckboxes = document.querySelectorAll(".user-checkbox");
+          isAllSelected = this.checked;
+
+          userCheckboxes.forEach((checkbox) => {
+            checkbox.checked = this.checked;
+          });
+
+          // 버튼 텍스트 변경
+          selectAllBtn.textContent = isAllSelected ? "전체 해제" : "전체 선택";
+        });
+
+      // 선택된 사용자 ID 가져오기 함수 수정
+      function getSelectedUserIds() {
+        const checkboxes = document.querySelectorAll(".user-checkbox:checked");
+        return Array.from(checkboxes).map((checkbox) => checkbox.value);
+      }
+
+      // 페이지네이션 버튼 업데이트 함수
+      function updatePaginationButtons(totalItems, pageSize) {
+        const totalPages = Math.ceil(totalItems / pageSize);
+        const paginationContainer = document.getElementById("pagination");
+        paginationContainer.innerHTML = "";
+
+        // 이전 페이지 버튼
+        if (currentPage > 1) {
+          addPageButton("이전", currentPage - 1);
+        }
+
+        // 페이지 번호 버튼
+        for (let i = 1; i <= totalPages; i++) {
+          if (
+            i === 1 ||
+            i === totalPages ||
+            (i >= currentPage - 2 && i <= currentPage + 2)
+          ) {
+            addPageButton(i.toString(), i);
+          } else if (i === currentPage - 3 || i === currentPage + 3) {
+            addPageButton("...", null);
+          }
+        }
+
+        // 다음 페이지 버튼
+        if (currentPage < totalPages) {
+          addPageButton("다음", currentPage + 1);
+        }
+      }
+
+      // 페이지 버튼 추가
+      function addPageButton(text, pageNum) {
+        const button = document.createElement("button");
+        button.textContent = text;
+        button.className = `px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base rounded-lg ${
+          pageNum === currentPage
+            ? "bg-primary-500 text-white hover:bg-primary-600"
+            : "bg-white text-secondary-700 hover:bg-secondary-50 border border-secondary-200"
+        } transition-colors duration-200`;
+
+        if (pageNum) {
+          button.addEventListener("click", () => {
+            currentPage = pageNum;
+            fetchUsers();
+          });
+        }
+
+        document.getElementById("pagination").appendChild(button);
+      }
+
+      // 일괄 작업 처리
+      bulkApproveBtn.addEventListener("click", async () => {
+        const selectedIds = getSelectedUserIds();
+        if (selectedIds.length === 0) {
+          alert("선택된 사용자가 없습니다.");
+          return;
+        }
+
+        if (confirm(`${selectedIds.length}명의 사용자를 승인하시겠습니까?`)) {
+          try {
+            await Promise.all(
+              selectedIds.map((id) =>
+                axios.post("/api/admin/approve-user", {
+                  userId: id,
+                  isApproved: true,
+                })
+              )
+            );
+            alert("일괄 승인이 완료되었습니다.");
+            fetchUsers();
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      });
+
+      bulkDeleteBtn.addEventListener("click", async () => {
+        const selectedIds = getSelectedUserIds();
+        if (selectedIds.length === 0) {
+          alert("선택된 사용자가 없습니다.");
+          return;
+        }
+
+        if (confirm(`${selectedIds.length}명의 사용자를 삭제하시겠습니까?`)) {
+          try {
+            await Promise.all(
+              selectedIds.map((id) => axios.delete(`/api/admin/users/${id}`))
+            );
+            alert("일괄 삭제가 완료되었습니다.");
+            fetchUsers();
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      });
+
+      const bulkAdminBtn = document.getElementById("bulkAdmin");
+      const bulkReaderBtn = document.getElementById("bulkReader");
+
+      // 관리자 일괄 지정 기능
+      if (bulkAdminBtn) {
+        bulkAdminBtn.addEventListener("click", async () => {
+          const selectedIds = getSelectedUserIds();
+          if (selectedIds.length === 0) {
+            alert("선택된 사용자가 없습니다.");
+            return;
+          }
+
+          const setAdmin = confirm(
+            `${selectedIds.length}명의 사용자를 관리자로 지정하시겠습니까?`
+          );
+          if (setAdmin) {
+            try {
+              await Promise.all(
+                selectedIds.map((id) =>
+                  axios.post("/api/admin/set-admin", {
+                    userId: id,
+                    isAdmin: true,
+                  })
+                )
+              );
+              alert("관리자 지정이 완료되었습니다.");
+              fetchUsers();
+            } catch (error) {
+              handleError(error);
+            }
+          }
+        });
+      }
+
+      // 리더 일괄 지정 기능
+      if (bulkReaderBtn) {
+        bulkReaderBtn.addEventListener("click", async () => {
+          const selectedIds = getSelectedUserIds();
+          if (selectedIds.length === 0) {
+            alert("선택된 사용자가 없습니다.");
+            return;
+          }
+
+          const setReader = confirm(
+            `${selectedIds.length}명의 사용자를 리더로 지정하시겠습니까?`
+          );
+          if (setReader) {
+            try {
+              await Promise.all(
+                selectedIds.map((id) =>
+                  axios.post("/api/admin/set-reader", {
+                    userId: id,
+                    isReader: true,
+                  })
+                )
+              );
+              alert("리더 지정이 완료되었습니다.");
+              fetchUsers();
+            } catch (error) {
+              handleError(error);
+            }
+          }
+        });
+      }
+
+      // 디바이스 정보 표시 함수
+      async function showDeviceInfo(userId) {
+        try {
+          const response = await axios.get(`/api/admin/users/${userId}`);
+          const user = response.data;
+          const deviceModal = document.getElementById("deviceModal");
+          const deviceInfo = document.getElementById("deviceInfo");
+          const unregisterBtn = document.getElementById("unregisterDevice");
+
+          deviceInfo.innerHTML = `
+            <div>
+              <p class="text-sm font-medium text-gray-500">사용자</p>
+              <p class="mt-1">${user.name} (${user.studentId})</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">디바이스 상태</p>
+              <p class="mt-1">${user.deviceId ? "등록됨" : "미등록"}</p>
+            </div>
+            ${
+              user.deviceId
+                ? `
+              <div>
+                <p class="text-sm font-medium text-gray-500">디바이스 정보</p>
+                <div class="mt-1 space-y-1 text-sm">
+                  <p>모델: ${user.deviceInfo?.model || "알 수 없음"}</p>
+                  <p>플랫폼: ${user.deviceInfo?.platform || "알 수 없음"}</p>
+                  <p>버전: ${user.deviceInfo?.version || "알 수 없음"}</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-500">마지막 로그인</p>
+                <p class="mt-1">${
+                  user.deviceInfo?.lastLogin
+                    ? new Date(user.deviceInfo.lastLogin).toLocaleString()
+                    : "기록 없음"
+                }</p>
+              </div>
+            `
+                : ""
+            }
+          `;
+
+          // 디바이스 해제 버튼 설정
+          if (user.deviceId) {
+            unregisterBtn.style.display = "block";
+            unregisterBtn.onclick = () =>
+              unregisterDevice(user.deviceId, userId);
+          } else {
+            unregisterBtn.style.display = "none";
+          }
+
+          deviceModal.classList.remove("hidden");
+        } catch (error) {
+          console.error("Error fetching device info:", error);
+          alert("디바이스 정보를 불러오는데 실패했습니다.");
+        }
+      }
+
+      // 디바이스 모달 닫기 함수
+      function closeDeviceModal() {
+        document.getElementById("deviceModal").classList.add("hidden");
+      }
+
+      // 디바이스 해제 함수
+      async function unregisterDevice(deviceId, userId) {
+        if (confirm("정말로 이 디바이스를 해제하시겠습니까?")) {
+          try {
+            await axios.delete("/api/device", { data: { deviceId } });
+            alert("디바이스가 해제되었습니다.");
+            closeDeviceModal();
+            fetchUsers(); // 사용자 목록 새로고침
+          } catch (error) {
+            console.error("Error unregistering device:", error);
+            alert("디바이스 해제에 실패했습니다.");
+          }
+        }
+      }
+
+      // ESC 키로 모달 닫기
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeDeviceModal();
+        }
+      });
+
+      // 모달 외부 클릭시 닫기
+      document.getElementById("deviceModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) {
+          closeDeviceModal();
+        }
+      });
+
+      // 학생 일괄 생성 기능
+      const bulkCreateBtn = document.getElementById("bulkCreateBtn");
+      const bulkCreateModal = document.getElementById("bulkCreateModal");
+      const bulkCreateCancel = document.getElementById("bulkCreateCancel");
+      const bulkCreateConfirm = document.getElementById("bulkCreateConfirm");
+      const generateNameListBtn = document.getElementById("generateNameList");
+
+      // 번호 범위로 빈 이름 목록 생성
+      generateNameListBtn.addEventListener("click", () => {
+        const startNumber =
+          parseInt(document.getElementById("bulkStartNumber").value) || 1;
+        const endNumber =
+          parseInt(document.getElementById("bulkEndNumber").value) || 30;
+
+        if (startNumber > endNumber) {
+          alert("시작 번호는 끝 번호보다 작거나 같아야 합니다.");
+          return;
+        }
+
+        let nameList = "";
+        for (let i = startNumber; i <= endNumber; i++) {
+          nameList += `${i}:\n`;
+        }
+
+        document.getElementById("bulkCustomNames").value = nameList.trim();
+      });
+
+      // 일괄 생성 모달 열기
+      bulkCreateBtn.addEventListener("click", () => {
+        // 모달 초기화
+        document.getElementById("bulkGrade").value = "1";
+        document.getElementById("bulkClass").value = "1";
+        document.getElementById("bulkStartNumber").value = "1";
+        document.getElementById("bulkEndNumber").value = "30";
+        document.getElementById("bulkCustomNames").value = "";
+        document.getElementById("bulkPassword").value = "";
+
+        bulkCreateModal.classList.remove("hidden");
+      });
+
+      // 일괄 생성 모달 닫기
+      bulkCreateCancel.addEventListener("click", () => {
+        bulkCreateModal.classList.add("hidden");
+      });
+
+      // 모달 외부 클릭시 닫기
+      bulkCreateModal.addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) {
+          bulkCreateModal.classList.add("hidden");
+        }
+      });
+
+      // ESC 키로 모달 닫기
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          bulkCreateModal.classList.add("hidden");
+        }
+      });
+
+      // 학생 일괄 생성 실행
+      bulkCreateConfirm.addEventListener("click", async () => {
+        const grade = document.getElementById("bulkGrade").value;
+        const classNumber = document.getElementById("bulkClass").value;
+        const startNumber = document.getElementById("bulkStartNumber").value;
+        const endNumber = document.getElementById("bulkEndNumber").value;
+        const customNames = document.getElementById("bulkCustomNames").value;
+        const commonPassword = document.getElementById("bulkPassword").value;
+
+        // 입력값 검증
+        if (
+          !grade ||
+          !classNumber ||
+          !startNumber ||
+          !endNumber ||
+          !commonPassword
+        ) {
+          alert("모든 필수 항목을 입력해주세요.");
+          return;
+        }
+
+        // 번호 범위 검증
+        if (parseInt(startNumber) > parseInt(endNumber)) {
+          alert("시작 번호는 끝 번호보다 작거나 같아야 합니다.");
+          return;
+        }
+
+        // 비밀번호 길이 검증
+        if (commonPassword.length < 8) {
+          alert("비밀번호는 8자 이상이어야 합니다.");
+          return;
+        }
+
+        // 개별 이름 목록 파싱
+        let nameMap = {};
+        if (!customNames.trim()) {
+          alert("개별 이름 목록을 입력해주세요.");
+          return;
+        }
+
+        const nameLines = customNames.split("\n");
+        for (const line of nameLines) {
+          if (!line.trim()) continue;
+
+          const parts = line.trim().split(":");
+          if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+            alert(
+              `잘못된 형식의 이름 입력이 있습니다: "${line}"\n올바른 형식: "번호:이름"`
+            );
+            return;
+          }
+
+          const num = parseInt(parts[0].trim());
+          const name = parts[1].trim();
+
+          if (isNaN(num) || num < 1 || num > 100) {
+            alert(`유효하지 않은 번호입니다: ${parts[0]}`);
+            return;
+          }
+
+          nameMap[num] = name;
+        }
+
+        try {
+          const response = await axios.post("/api/admin/bulk-create-users", {
+            grade,
+            classNumber,
+            startNumber,
+            endNumber,
+            commonPassword,
+            customNames: nameMap,
+          });
+
+          alert(`${response.data.createdCount}명의 학생이 생성되었습니다.`);
+
+          if (response.data.skippedStudentIds.length > 0) {
+            alert(
+              `이미 존재하는 학번으로 건너뛴 학생: ${response.data.skippedStudentIds.join(
+                ", "
+              )}`
+            );
+          }
+
+          bulkCreateModal.classList.add("hidden");
+          fetchUsers(); // 사용자 목록 새로고침
+        } catch (error) {
+          console.error("Error creating users:", error);
+          if (
+            error.response &&
+            error.response.data &&
+            error.response.data.message
+          ) {
+            alert(`오류: ${error.response.data.message}`);
+          } else {
+            alert("학생 일괄 생성 중 오류가 발생했습니다.");
+          }
+        }
+      });
+    </script>
+    <!-- PWA 등록 스크립트 추가 -->
+    <script src="js/pwa-register.js"></script>
+  </body>
+</html>

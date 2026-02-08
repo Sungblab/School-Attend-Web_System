@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>디지털 출결관리</title>
+    <link href="css/output.css" rel="stylesheet" />
+
+    <!-- PWA 설정 -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="출결관리" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="description" content="디지털 출결관리" />
+    <!-- PWA 설정 끝 -->
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/axios-config.js"></script>
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      @media (max-width: 640px) {
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+      }
+
+      @media (min-width: 641px) and (max-width: 1024px) {
+        .container {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+      }
+
+      .hover-scale {
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .hover-scale:hover {
+        transform: scale(1.02);
+      }
+
+      #qrcode img {
+        margin: 0 auto;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .status-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .status-card:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+    <meta name="theme-color" content="#4F46E5" />
+  </head>
+  <body class="bg-white text-gray-900 font-sans flex flex-col min-h-screen">
+    <header>
+      <nav
+        class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-5 flex justify-between items-center shadow-sm bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50"
+      >
+        <a
+          href="/hub.html"
+          class="text-xl sm:text-2xl font-bold text-primary flex items-center hover-scale"
+        >
+          <i class="ri-calendar-check-fill mr-2"></i>
+          디지털 출결관리
+        </a>
+        <!-- PWA 설치 버튼 추가 -->
+        <button
+          id="install-pwa"
+          class="hidden bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg text-sm flex items-center"
+        >
+          <i class="ri-download-line mr-1"></i> 앱 설치
+        </button>
+      </nav>
+    </header>
+
+    <main
+      class="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4 sm:py-8 mt-12 sm:mt-16"
+    >
+      <div class="w-full max-w-lg my-4 sm:my-8">
+        <div
+          class="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-lg"
+        >
+          <div id="qrcode" class="flex justify-center mb-4 sm:mb-6"></div>
+          <p
+            id="student-info"
+            class="text-center text-gray-700 mb-2 font-medium text-base sm:text-lg"
+          ></p>
+          <p class="text-center text-xs sm:text-sm text-gray-500 mb-6">
+            이 QR 코드는 30초마다 갱신됩니다.
+          </p>
+
+          <div class="mt-6 bg-white rounded-lg shadow p-6">
+            <h3 class="text-xl font-bold mb-4">오늘의 출석 상태</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">현재 시간</span>
+                <span id="currentTime" class="font-semibold"></span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">출석 마감</span>
+                <span class="font-semibold text-red-600">09:00</span>
+              </div>
+              <div id="todayStatus" class="mt-4">
+                <!-- 동적으로 추가될 내용 -->
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              onclick="showAttendanceDetails()"
+              class="w-full bg-primary hover:bg-secondary text-white font-medium py-2.5 px-4 rounded-xl transition duration-300 hover-scale flex items-center justify-center shadow-md text-sm"
+            >
+              <i class="ri-file-list-line mr-2"></i>
+              출결 기록 보기
+            </button>
+
+            <button
+              id="refresh-btn"
+              class="w-full bg-primary hover:bg-secondary text-white font-medium py-2.5 px-4 rounded-xl transition duration-300 hover-scale flex items-center justify-center shadow-md text-sm"
+            >
+              <i class="ri-refresh-line mr-2"></i>
+              QR 코드 새로고침
+            </button>
+
+            <button
+              onclick="showSelfAbsentModal()"
+              class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-4 rounded-xl transition duration-300 hover-scale flex items-center justify-center shadow-md text-sm"
+            >
+              <i class="ri-file-text-line mr-2"></i>
+              자진 결석 신고
+            </button>
+          </div>
+
+          <button
+            id="logout-btn"
+            class="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-4 rounded-xl transition duration-300 hover-scale flex items-center justify-center mt-3 shadow-md text-sm"
+          >
+            <i class="ri-logout-box-r-line mr-2"></i>
+            로그아웃
+          </button>
+
+          <div
+            id="error-message"
+            class="mt-4 p-3 bg-red-100 text-red-700 rounded-xl text-center hidden text-sm"
+          ></div>
+        </div>
+
+        <div class="mt-6 flex justify-center">
+          <a
+            href="change-password.html"
+            class="text-primary hover:text-secondary transition duration-200 flex items-center hover-scale"
+          >
+            <i class="ri-lock-password-line mr-2"></i>
+            비밀번호 변경하기
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <footer
+      class="bg-white/80 backdrop-blur-md text-gray-600 py-4 sm:py-6 mt-auto border-t border-gray-100"
+    >
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center text-center">
+          <p class="mb-2">이메일: sungblab@gmail.com</p>
+          <a
+            href="https://sungblab.vercel.app/blog"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary hover:underline mb-4"
+            >개발자 블로그로 가기</a
+          >
+        </div>
+        <div class="text-center">
+          <p>&copy; 2024 디지털 출결관리. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 모달 스타일 개선 -->
+    <div
+      id="attendanceModal"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+    >
+      <div
+        class="relative mx-auto p-0 sm:p-6 border w-full sm:w-11/12 max-w-2xl shadow-lg rounded-2xl bg-white/90 backdrop-blur-md min-h-screen sm:min-h-0 sm:my-8"
+      >
+        <div
+          class="sticky top-0 bg-white/90 backdrop-blur-md z-10 p-4 border-b rounded-t-2xl"
+        >
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">출결 기록</h3>
+            <button
+              onclick="closeModal()"
+              class="p-2 hover:bg-gray-100 rounded-full transition duration-200"
+              aria-label="닫기"
+            >
+              <i class="ri-close-line text-2xl"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div class="bg-green-50 p-4 rounded-xl hover-scale">
+              <div class="flex flex-col items-center">
+                <span class="text-sm font-medium text-green-700">출석</span>
+                <span
+                  class="text-2xl font-bold text-green-900"
+                  id="presentCount"
+                  >-</span
+                >
+              </div>
+            </div>
+            <div class="bg-yellow-50 p-4 rounded-xl hover-scale">
+              <div class="flex flex-col items-center">
+                <span class="text-sm font-medium text-yellow-700">지각</span>
+                <span class="text-2xl font-bold text-yellow-900" id="lateCount"
+                  >-</span
+                >
+              </div>
+            </div>
+            <div class="bg-red-50 p-4 rounded-xl hover-scale">
+              <div class="flex flex-col items-center">
+                <span class="text-sm font-medium text-red-700">결석</span>
+                <span class="text-2xl font-bold text-red-900" id="absentCount"
+                  >-</span
+                >
+              </div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-xl hover-scale">
+              <div class="flex flex-col items-center">
+                <span class="text-sm font-medium text-blue-700">인정출결</span>
+                <span class="text-2xl font-bold text-blue-900" id="excusedCount"
+                  >-</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl">
+            <div id="attendanceList" class="divide-y divide-gray-200">
+              <!-- 동적으로 추가될 내용 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 자진 결석 신고 모달 -->
+    <div
+      id="selfAbsentModal"
+      class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+    >
+      <div
+        class="relative mx-auto p-0 sm:p-6 border w-full sm:w-11/12 max-w-lg shadow-lg rounded-2xl bg-white/90 backdrop-blur-md min-h-screen sm:min-h-0 sm:my-8"
+      >
+        <div
+          class="sticky top-0 bg-white/90 backdrop-blur-md z-10 p-4 border-b rounded-t-2xl"
+        >
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">자진 결석 신고</h3>
+            <button
+              onclick="closeSelfAbsentModal()"
+              class="p-2 hover:bg-gray-100 rounded-full transition duration-200"
+              aria-label="닫기"
+            >
+              <i class="ri-close-line text-2xl"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6">
+          <div class="mb-4">
+            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <div class="flex items-center mb-2">
+                <i class="ri-alert-line text-yellow-600 mr-2"></i>
+                <span class="text-yellow-800 font-medium">주의사항</span>
+              </div>
+              <ul class="text-sm text-yellow-700 space-y-1">
+                <li>• 자진 결석 신고는 하루에 한 번만 가능합니다.</li>
+                <li>• 신고 후 관리자의 승인이 필요합니다.</li>
+                <li>• 거짓 신고 시 불이익이 있을 수 있습니다.</li>
+              </ul>
+            </div>
+          </div>
+
+          <form id="selfAbsentForm">
+            <div class="mb-4">
+              <label for="absentReason" class="block text-sm font-medium text-gray-700 mb-2">
+                결석 사유 <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                id="absentReason"
+                name="reason"
+                rows="4"
+                placeholder="결석 사유를 자세히 입력해주세요..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                required
+              ></textarea>
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                type="button"
+                onclick="closeSelfAbsentModal()"
+                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2.5 px-4 rounded-xl transition duration-300"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-4 rounded-xl transition duration-300"
+              >
+                신고하기
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- PWA 등록 스크립트 추가 -->
+    <script src="js/pwa-register.js"></script>
+
+    <script>
+      let studentId, studentName;
+
+      function showError(message) {
+        const errorElement = document.getElementById("error-message");
+        errorElement.textContent = message;
+        errorElement.classList.remove("hidden");
+      }
+
+      function hideError() {
+        document.getElementById("error-message").classList.add("hidden");
+      }
+
+      function checkAuth() {
+        const token = localStorage.getItem("token");
+        
+        if (!token) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userInfo");
+          window.location.href =
+            "index.html?error=" + encodeURIComponent("로그인이 필요합니다.");
+          return false;
+        }
+        return true;
+      }
+
+      async function fetchStudentInfo() {
+        try {
+          if (!checkAuth()) return;
+
+          const response = await axios.get("/api/student-info");
+          const data = response.data;
+
+          if (!response.status === 200) {
+            throw new Error(data.message || "Failed to fetch student info");
+          }
+
+          studentId = data.studentId;
+          studentName = data.name;
+          document.getElementById(
+            "student-info"
+          ).textContent = `학번: ${studentId} | 이름: ${studentName}`;
+          hideError();
+
+          // 학생 정보를 가져온 후 QR 코드 생성
+          await generateQRCode();
+        } catch (error) {
+          console.error("Error fetching student info:", error);
+          showError(`학생 정보를 가져오는데 실패했습니다: ${error.message}`);
+        }
+      }
+
+      async function generateQRCode() {
+        try {
+          if (!checkAuth()) return;
+
+          if (!studentId || !studentName) {
+            await fetchStudentInfo();
+            return;
+          }
+
+          const response = await axios.post("/api/generate-qr", {
+            studentId: studentId.trim(),
+          });
+
+          const data = response.data;
+          if (!data.success || !data.encryptedData) {
+            throw new Error(data.message || "QR 코드 생성에 실패했습니다.");
+          }
+
+          const qr = qrcode(0, "L");
+          qr.addData(data.encryptedData.trim());
+          qr.make();
+
+          const qrDiv = document.getElementById("qrcode");
+          qrDiv.innerHTML = qr.createImgTag(6);
+
+          // QR 코드 이미지 스타일 적용
+          const qrImage = qrDiv.querySelector("img");
+          if (qrImage) {
+            qrImage.style.margin = "0 auto";
+            qrImage.style.borderRadius = "1rem";
+            qrImage.style.boxShadow =
+              "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+          }
+
+          hideError();
+        } catch (error) {
+          console.error("QR 코드 생성 오류:", error);
+          showError(`QR 코드 생성 실패: ${error.message}`);
+        }
+      }
+
+      // 페이지 로드 시 실행
+      document.addEventListener("DOMContentLoaded", async () => {
+        if (!checkAuth()) return;
+        // 토큰을 axios 기본 헤더에 설정
+        const token = localStorage.getItem("token");
+        if (token) {
+          axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        }
+        await fetchAttendanceSettings();
+        await fetchStudentInfo();
+        await checkTodayAttendance();
+        updateCurrentTime();
+      });
+
+      // QR 코드 자동 갱신
+      setInterval(generateQRCode, 30000);
+
+      // 새로고침 버튼 이벤트
+      document
+        .getElementById("refresh-btn")
+        .addEventListener("click", generateQRCode);
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async function () {
+          try {
+            const response = await axios.post("/api/logout");
+
+            if (!response.status === 200) {
+              const errorData = response.data;
+              throw new Error(errorData.message || "Logout failed");
+            }
+
+            const data = response.data;
+            if (!data.success) {
+              throw new Error(data.message || "Logout failed");
+            }
+            localStorage.removeItem("token");
+            localStorage.removeItem("userInfo");
+            localStorage.removeItem("keepLoggedIn");
+            window.location.href = "index.html"; // 로그인 페이지로 리다이렉트
+          } catch (error) {
+            console.error("Error during logout:", error);
+            showError(`로그아웃 중 오류가 발생했습니다: ${error.message}`);
+          }
+        });
+
+      // 페이지 로드 시 즉시 증 체크
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!checkAuth()) return;
+        fetchStudentInfo();
+      });
+
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `fixed bottom-4 right-4 p-4 rounded-lg ${
+          type === "error" ? "bg-red-500" : "bg-green-500"
+        } text-white`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+
+      // 오늘의 출석 상태 조회 함수
+      async function checkTodayAttendance() {
+        try {
+          const response = await axios.get(
+            `/api/attendance/student/${studentId}`
+          );
+
+          const data = response.data;
+
+          if (!data.success) {
+            throw new Error(data.message);
+          }
+
+          const todayStatusDiv = document.getElementById("todayStatus");
+          if (data.todayStatus) {
+            const status = data.todayStatus;
+            const statusClass =
+              {
+                present: "bg-green-100 text-green-800",
+                late: "bg-yellow-100 text-yellow-800",
+                absent: "bg-red-100 text-red-800",
+                pending: "bg-orange-100 text-orange-800",
+              }[status.status] || "bg-gray-100 text-gray-800";
+
+            const statusText =
+              {
+                present: "출석",
+                late: "지각",
+                absent: "결석",
+                pending: "신고 대기중",
+              }[status.status] || "미출석";
+
+            todayStatusDiv.innerHTML = `
+              <div class="flex items-center space-x-4">
+                <span class="px-4 py-2 rounded-full ${statusClass} font-medium">
+                  ${statusText}
+                  ${status.lateMinutes ? `(${status.lateMinutes}분 지각)` : ""}
+                </span>
+                ${
+                  status.isExcused
+                    ? `<span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full">인정출결 </span>
+                   <span class="text-gray-600">${status.reason || ""}</span>`
+                    : ""
+                }
+              </div>
+            `;
+          } else {
+            todayStatusDiv.innerHTML = `
+              <div class="text-gray-500">
+                아직 출석 기록이 없습니다.
+              </div>
+            `;
+          }
+        } catch (error) {
+          console.error("출석 상태 조회 중 오류:", error);
+          showError("출석 상태를 조회하는데 실패했습니다.");
+        }
+      }
+
+      // 출결 상세 정보 조회 함수
+      async function showAttendanceDetails() {
+        try {
+          const response = await axios.get(
+            `/api/attendance/student/${studentId}`
+          );
+          const data = response.data;
+
+          if (!data.success) {
+            throw new Error(data.message);
+          }
+
+          // 통계 업데이트
+          document.getElementById("presentCount").textContent =
+            data.totalStats.present;
+          document.getElementById("lateCount").textContent =
+            data.totalStats.late;
+          document.getElementById("absentCount").textContent =
+            data.totalStats.absent;
+          document.getElementById("excusedCount").textContent =
+            data.totalStats.excused;
+
+          // 출결 기록 테이블 업데이트
+          const attendanceList = document.getElementById("attendanceList");
+          attendanceList.innerHTML = "";
+
+          // data.attendances가 객체인 경우 처리
+          if (data.attendances && typeof data.attendances === "object") {
+            Object.entries(data.attendances).forEach(
+              ([month, monthAttendances]) => {
+                if (Array.isArray(monthAttendances)) {
+                  monthAttendances.forEach((attendance) => {
+                    const attendanceDiv = document.createElement("div");
+                    attendanceDiv.className = "p-4 bg-white";
+                    attendanceDiv.innerHTML = `
+                    <div class="flex flex-col space-y-2">
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-900 font-medium">
+                          ${moment(attendance.date).format("YYYY-MM-DD")}
+                        </span>
+                        <span class="text-gray-500 text-sm">
+                          ${moment(attendance.date).format("(ddd)")}
+                        </span>
+                      </div>
+                      
+                      <div class="flex flex-wrap gap-2 items-center">
+                        <span class="${getStatusBadgeClass(attendance.status)}">
+                          ${getStatusText(attendance.status)}
+                        </span>
+                        ${
+                          attendance.lateMinutes
+                            ? `<span class="text-yellow-600 text-sm">
+                                ${attendance.lateMinutes}분 지각
+                              </span>`
+                            : ""
+                        }
+                        ${
+                          attendance.isExcused
+                            ? `<span class="text-blue-600 text-sm bg-blue-50 px-2 py-1 rounded">
+                                인정출결
+                              </span>`
+                            : ""
+                        }
+                      </div>
+                      
+                      ${
+                        attendance.reason
+                          ? `<div class="text-sm text-gray-600 mt-1">
+                              ${attendance.reason}
+                            </div>`
+                          : ""
+                      }
+                    </div>
+                  `;
+                    attendanceList.appendChild(attendanceDiv);
+                  });
+                }
+              }
+            );
+          }
+
+          // 모달 표시
+          document.getElementById("attendanceModal").classList.remove("hidden");
+        } catch (error) {
+          console.error("출결 기록 조회 중 오류:", error);
+          showError("출결 기록을 조회하는데 실패했습니다.");
+        }
+      }
+
+      // 모달 닫기 함수
+      function closeModal() {
+        document.getElementById("attendanceModal").classList.add("hidden");
+      }
+
+      // 상태별 배지 스타일 클래스
+      function getStatusBadgeClass(status) {
+        const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+        switch (status) {
+          case "present":
+            return `${baseClasses} bg-green-100 text-green-800`;
+          case "late":
+            return `${baseClasses} bg-yellow-100 text-yellow-800`;
+          case "absent":
+            return `${baseClasses} bg-red-100 text-red-800`;
+          case "pending":
+            return `${baseClasses} bg-orange-100 text-orange-800`;
+          default:
+            return `${baseClasses} bg-gray-100 text-gray-800`;
+        }
+      }
+
+      // 상태 텍스트 변환
+      function getStatusText(status) {
+        return (
+          {
+            present: "출석",
+            late: "지각",
+            absent: "결석",
+            pending: "신고 대기중",
+          }[status] || "미출석"
+        );
+      }
+
+      // 페이지 로드 시 출석 상태 확인
+      document.addEventListener("DOMContentLoaded", async () => {
+        if (!checkAuth()) return;
+        await fetchStudentInfo();
+        await checkTodayAttendance();
+      });
+
+      // ESC 키로 모달 닫기
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeModal();
+          closeSelfAbsentModal();
+        }
+      });
+
+      // 현재 시간 업데이트 함수
+      function updateCurrentTime() {
+        const currentTime = document.getElementById("currentTime");
+        currentTime.textContent = moment().tz("Asia/Seoul").format("HH:mm:ss");
+      }
+
+      // 1초마다 시간 업데이트
+      setInterval(updateCurrentTime, 1000);
+
+      // 페이지 로드 시 즉시 시간 표시
+      updateCurrentTime();
+
+      // 출결 설정 가져오기 함수 추가
+      async function fetchAttendanceSettings() {
+        try {
+          const response = await axios.get("/api/settings/attendance");
+          const { settings } = response.data;
+
+          // 출결 마감 시간만 표시
+          document.querySelector(".text-red-600").textContent =
+            settings.lateTime;
+
+          return settings;
+        } catch (error) {
+          console.error("출결 설정을 가져오는데 실패했습니다:", error);
+          showError("출결 설정을 가져오는데 실패했습니다.");
+        }
+      }
+
+      // 자진 결석 신고 모달 표시 함수
+      function showSelfAbsentModal() {
+        document.getElementById("selfAbsentModal").classList.remove("hidden");
+        document.getElementById("absentReason").focus();
+      }
+
+      // 자진 결석 신고 모달 닫기 함수
+      function closeSelfAbsentModal() {
+        document.getElementById("selfAbsentModal").classList.add("hidden");
+        document.getElementById("selfAbsentForm").reset();
+      }
+
+      // 자진 결석 신고 폼 제출 처리
+      document.getElementById("selfAbsentForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const reason = document.getElementById("absentReason").value.trim();
+        
+        if (!reason) {
+          showError("결석 사유를 입력해주세요.");
+          return;
+        }
+
+        try {
+          const response = await axios.post("/api/attendance/self-absent", {
+            reason: reason
+          });
+
+          if (response.data.success) {
+            showToast("자진 결석 신고가 완료되었습니다. 관리자 승인을 기다려주세요.", "success");
+            closeSelfAbsentModal();
+            // 오늘의 출석 상태 새로고침
+            await checkTodayAttendance();
+          } else {
+            showError(response.data.message || "자진 결석 신고에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("자진 결석 신고 중 오류:", error);
+          if (error.response && error.response.data) {
+            showError(error.response.data.message || "자진 결석 신고에 실패했습니다.");
+          } else {
+            showError("자진 결석 신고 중 오류가 발생했습니다.");
+          }
+        }
+      });
+
+      // 토스트 메시지 표시 함수 개선
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          type === "error" ? "bg-red-500" : 
+          type === "success" ? "bg-green-500" : 
+          "bg-blue-500"
+        } text-white`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>

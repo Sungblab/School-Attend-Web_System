@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>디지털 출결관리 - 관리자</title>
+    <link href="css/output.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      @media (max-width: 640px) {
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        .hide-mobile {
+          display: none !important;
+        }
+      }
+
+      @media (min-width: 641px) and (max-width: 1024px) {
+        .container {
+          padding-left: 2rem;
+          padding-right: 2rem;
+        }
+      }
+
+      .hover-scale {
+        transition: transform 0.2s ease-in-out;
+      }
+
+      .hover-scale:hover {
+        transform: scale(1.02);
+      }
+
+      .menu-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      @media (min-width: 1024px) {
+        .menu-grid {
+          grid-template-columns: repeat(2, 1fr);
+          max-width: 800px;
+          margin: 0 auto;
+        }
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/axios-config.js"></script>
+  </head>
+  <body class="bg-white text-gray-900 font-sans flex flex-col min-h-screen">
+    <header>
+      <nav
+        class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center shadow-sm bg-white/80 backdrop-blur-md fixed top-0 left-0 right-0 z-50"
+      >
+        <a
+          href="/hub.html"
+          class="text-xl sm:text-2xl font-bold text-primary flex items-center hover-scale"
+        >
+          <i class="ri-calendar-check-fill mr-2"></i>
+          디지털 출결관리 - 관리자
+        </a>
+        <div id="user-info" class="text-sm sm:text-base text-gray-600"></div>
+      </nav>
+    </header>
+
+    <main
+      class="flex-grow flex items-center justify-center px-4 sm:px-6 lg:px-8 py-4 sm:py-8 mt-12 sm:mt-16"
+    >
+      <div class="w-full max-w-3xl my-4 sm:my-8">
+        <div
+          id="message-banner"
+          class="hidden mb-4 p-3 rounded-xl text-white text-center text-sm sm:text-base font-medium max-w-2xl mx-auto"
+        ></div>
+        <div
+          class="bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-lg"
+        >
+          <div id="menu-buttons" class="menu-grid">
+            <!-- 버튼들이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        <div class="mt-6 flex justify-center">
+          <a
+            href="change-password.html"
+            class="text-primary hover:text-secondary transition duration-200 flex items-center hover-scale"
+          >
+            <i class="ri-lock-password-line mr-2"></i>
+            비밀번호 변경하기
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <footer
+      class="bg-white/80 backdrop-blur-md text-gray-600 py-4 sm:py-6 mt-auto border-t border-gray-100"
+    >
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-center text-center">
+          <p class="mb-2">이메일: sungblab@gmail.com</p>
+          <a
+            href="https://sungblab.vercel.app/blog"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary hover:underline mb-4"
+            >개발자 블로그로 가기</a
+          >
+        </div>
+        <div class="text-center">
+          <p>&copy; 2024 디지털 출결관리 - 관리자 . All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // 로그인 상태 확인
+      function checkLoginStatus() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          localStorage.removeItem("userInfo");
+          localStorage.removeItem("token");
+          window.location.href =
+            "index.html?error=" + encodeURIComponent("로그인이 필요합니다.");
+          return false;
+        }
+
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        if (!userInfo.isAdmin && !userInfo.isReader) {
+          window.location.href = "qr.html";
+          return false;
+        }
+
+        return true;
+      }
+
+      // 페이지 로드 시 로그인 상태 확인
+      window.addEventListener("load", () => {
+        if (!checkLoginStatus()) {
+          return; // 리다이렉트 되었으므로 추가 실행 중지
+        }
+
+        // 사용자 권한 확인
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        const isAdmin = userInfo?.isAdmin || false;
+        const isReader = userInfo?.isReader || false;
+
+        // 사용자 정보 표시
+        const userInfoElement = document.getElementById("user-info");
+        userInfoElement.textContent = `${userInfo.name} (${userInfo.studentId})`;
+
+        const menuButtons = document.getElementById("menu-buttons");
+        const messageBanner = document.getElementById("message-banner");
+
+        // 메시지 표시 함수
+        function showMessage(message, type = "error") {
+          messageBanner.textContent = message;
+          messageBanner.classList.remove(
+            "hidden",
+            "bg-red-500",
+            "bg-yellow-500",
+            "bg-green-500"
+          );
+
+          switch (type) {
+            case "error":
+              messageBanner.classList.add("bg-red-500");
+              break;
+            case "warning":
+              messageBanner.classList.add("bg-yellow-500");
+              break;
+            case "success":
+              messageBanner.classList.add("bg-green-500");
+              break;
+          }
+
+          messageBanner.classList.remove("hidden");
+
+          // 5초 후 메시지 숨기기
+          setTimeout(() => {
+            messageBanner.classList.add("hidden");
+          }, 5000);
+        }
+
+        // 관리자 대시보드 버튼 (관리자에게만 표시)
+        if (isAdmin) {
+          addButton(
+            "관리자 대시보드",
+            "bg-primary hover:bg-secondary",
+            "dashboard.html",
+            "ri-dashboard-line"
+          );
+          // 출석 통계 대시보드 버튼 (관리자에게만 표시)
+          addButton(
+            "출석 통계 대시보드",
+            "bg-primary hover:bg-secondary",
+            "statistics-dashboard.html",
+            "ri-bar-chart-box-line"
+          );
+        }
+
+        // 출석 리더기 버튼 (리더 권한이 있는 사용자에게만 표시)
+        if (isReader) {
+          addButton(
+            "출석 리더기",
+            "bg-primary hover:bg-secondary",
+            "reader.html",
+            "ri-camera-line"
+          );
+        }
+
+        // 로그아웃 버튼 (모든 사용자에게 표시)
+        addButton(
+          "로그아웃",
+          "bg-red-500 hover:bg-red-600",
+          "logout",
+          "ri-logout-box-r-line"
+        );
+
+        function addButton(text, classes, destination, icon) {
+          const button = document.createElement("button");
+          button.className = `w-full ${classes} text-white font-medium py-2.5 px-4 rounded-xl transition duration-300 hover-scale flex items-center justify-center text-sm sm:text-base shadow-md`;
+          button.innerHTML = `<i class="${icon} mr-2 text-lg"></i>${text}`;
+          button.addEventListener("click", () => {
+            if (destination === "logout") {
+              // 로그아웃 처리
+              localStorage.clear(); // 모든 로컬 스토리지 데이터 삭제
+              
+              // 쿠키도 삭제
+              document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.trim().split("=")[0] + "=;expires=" + new Date(0).toUTCString() + ";path=/";
+              });
+              
+              showMessage("로그아웃되었습니다.", "success");
+              setTimeout(() => {
+                window.location.href = "index.html";
+              }, 500);
+            } else {
+              if (checkAccess(destination)) {
+                window.location.href = destination;
+              }
+            }
+          });
+          menuButtons.appendChild(button);
+        }
+
+        // 페이지 접근 제어
+        function checkAccess(page) {
+          switch (page) {
+            case "dashboard.html":
+            case "statistics-dashboard.html":
+              if (!isAdmin) {
+                showMessage("관리자 권한이 필요합니다.");
+                return false;
+              }
+              break;
+            case "reader.html":
+              if (!isReader) {
+                showMessage("리더 권한이 필요합니다.");
+                return false;
+              }
+              break;
+          }
+          return true;
+        }
+
+        // URL 파라미터 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMessage = urlParams.get("error");
+        if (errorMessage) {
+          showMessage(decodeURIComponent(errorMessage));
+        }
+      });
+    </script>
+  </body>
+</html>

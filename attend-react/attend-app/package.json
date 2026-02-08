@@ -1,0 +1,43 @@
+{
+  "name": "attend-app",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "dev": "expo start --clear",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@expo-google-fonts/noto-sans-kr": "^0.2.3",
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-navigation/bottom-tabs": "^6.6.1",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native-stack": "^6.9.17",
+    "axios": "^1.7.9",
+    "base-64": "^1.0.0",
+    "color": "^4.2.3",
+    "expo": "^52.0.23",
+    "expo-device": "^7.0.1",
+    "expo-font": "~13.0.2",
+    "expo-linear-gradient": "~14.0.1",
+    "expo-status-bar": "~2.0.0",
+    "moment": "^2.30.1",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "react-native-dotenv": "^3.4.11",
+    "react-native-paper": "^5.12.5",
+    "react-native-qrcode-svg": "^6.3.12",
+    "react-native-responsive-screen": "^1.4.2",
+    "react-native-safe-area-context": "^5.0.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-svg": "15.8.0",
+    "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+}

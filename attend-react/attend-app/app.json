@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "디지털 출결",
+    "slug": "attend-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sungblab.attendapp",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.sungblab.attendapp",
+      "versionCode": 1,
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "fonts": {
+      "Pretendard-Regular": "./assets/fonts/Pretendard-Regular.otf",
+      "Pretendard-Medium": "./assets/fonts/Pretendard-Medium.otf",
+      "Pretendard-Bold": "./assets/fonts/Pretendard-Bold.otf"
+    },
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cb1c9604-db93-4a7f-a44e-4a4e9d9cbd03"
+      }
+    }
+  }
+}
