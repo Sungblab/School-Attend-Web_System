@@ -260,3 +260,7 @@ cd attend-front-admin
 npm install
 npm run build
 ```
+
+## 라이선스 / License
+
+MIT License. 자세한 내용은 [LICENSE](./LICENSE)를 참고하세요.
